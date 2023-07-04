@@ -21,7 +21,11 @@ function Spot(x, y) {
         if (this.wall) {
             fill(0);
             noStroke();
-            ellipse(this.x * w + w / 2, this.y * h + h / 2, w / 2, h / 2);
+            if (allowDiagonals) {
+                ellipse(this.x * w + w / 2, this.y * h + h / 2, w / 2 + 4, h / 2 + 4);
+            } else {
+                rect(this.x * w, this.y * h, w, h);
+            }
         } else if (col) {
             fill(col);
             noStroke();

@@ -7,7 +7,7 @@ var randomWall = 0.4;
 // allows the start and end points to be random or not
 var randomStartEnd = false;
 // allows the algorithm to move diagonally
-var allowDiagonals = false;
+var allowDiagonals = true;
 
 var openSet = [];
 var closedSet = [];
@@ -57,7 +57,7 @@ function setup() {
         freeStartAndEnd();
     }
     openSet.push(start);
-    background(0);
+    background(255);
 }
 
 function draw() {
@@ -110,7 +110,7 @@ function draw() {
         return;
     }
 
-    background(0);
+    background(255);
 
     for (var i = 0; i < cols; i++) {
         for (var j = 0; j < rows; j++) {
