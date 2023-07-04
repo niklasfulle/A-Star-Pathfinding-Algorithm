@@ -2,9 +2,12 @@ var cols = parseInt(1920 / 20);
 var rows = parseInt(1080 / 20);
 var grid = new Array(cols);
 
+// percentage of walls in the grid
 var randomWall = 0.4;
-var randomStartEnd = true;
-var allowDiagonals = true;
+// allows the start and end points to be random or not
+var randomStartEnd = false;
+// allows the algorithm to move diagonally
+var allowDiagonals = false;
 
 var openSet = [];
 var closedSet = [];
@@ -23,17 +26,19 @@ function setup() {
     w = width / cols;
     h = height / rows;
 
+    // Making a 2D array
     for (var i = 0; i < cols; i++) {
         grid[i] = new Array(rows);
     }
 
+    // Filling the 2D array with Spot objects
     for (var i = 0; i < cols; i++) {
         for (var j = 0; j < rows; j++) {
             grid[i][j] = new Spot(i, j);
         }
     }
 
-    // Add all the neighbors
+    // Add all the neighbors for each Spot object
     for (var i = 0; i < cols; i++) {
         for (var j = 0; j < rows; j++) {
             grid[i][j].addNeighbors(grid);
