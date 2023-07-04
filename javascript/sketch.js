@@ -1,23 +1,24 @@
 var cols = parseInt(1920 / 20);
 var rows = parseInt(1080 / 20);
-//var cols = 25;
-//var rows = 25;
 var grid = new Array(cols);
-var w, h;
+
+var randomWall = 0.4;
+var randomStartEnd = true;
+var allowDiagonals = true;
 
 var openSet = [];
 var closedSet = [];
 
 var start;
 var end;
-var path;
 
-var noSolution = false;
+var w, h;
+
+var path = [];
 
 function setup() {
     createCanvas(1920, 1080);
-    //createCanvas(400, 400);
-    frameRate(30);
+    frameRate(120);
 
     w = width / cols;
     h = height / rows;
@@ -32,16 +33,26 @@ function setup() {
         }
     }
 
+    // Add all the neighbors
     for (var i = 0; i < cols; i++) {
         for (var j = 0; j < rows; j++) {
             grid[i][j].addNeighbors(grid);
         }
     }
 
-    start = grid[0][0];
-    end = grid[cols - 1][rows - 1];
-
+    // Start and end points for A* algorithm (random or not)
+    if (randomStartEnd) {
+        start = grid[floor(random(cols))][floor(random(rows))];
+        end = grid[floor(random(cols))][floor(random(rows))];
+        start.wall = false;
+        end.wall = false;
+    } else {
+        start = grid[0][0];
+        end = grid[cols - 1][rows - 1];
+        freeStartAndEnd();
+    }
     openSet.push(start);
+    background(0);
 }
 
 function draw() {
@@ -67,71 +78,102 @@ function draw() {
             var neighbor = neighbors[i];
 
             if (!closedSet.includes(neighbor) && !neighbor.wall) {
-                var tempG = current.g + 1;
+                var tempG = current.g + heuristic(neighbor, current);
 
+                var newPath = false;
                 if (openSet.includes(neighbor)) {
                     if (tempG < neighbor.g) {
                         neighbor.g = tempG;
+                        newPath = true;
                     }
                 } else {
                     neighbor.g = tempG;
+                    newPath = true;
                     openSet.push(neighbor);
                 }
 
-                neighbor.h = heuristic(neighbor, end);
-                neighbor.f = neighbor.g + neighbor.h;
-                neighbor.previous = current;
+                if (newPath) {
+                    neighbor.h = heuristic(neighbor, end);
+                    neighbor.f = neighbor.g + neighbor.h;
+                    neighbor.previous = current;
+                }
             }
         }
     } else {
-        console.log("No solution");
-        noSolution = true;
+        console.log("no solution");
         noLoop();
+        return;
     }
 
     background(0);
 
     for (var i = 0; i < cols; i++) {
         for (var j = 0; j < rows; j++) {
-            grid[i][j].show(color(255));
+            grid[i][j].show(255);
         }
     }
 
     for (var i = 0; i < closedSet.length; i++) {
-        closedSet[i].show(color(255, 0, 0));
+        closedSet[i].show(color(255, 50, 0, 200));
     }
 
     for (var i = 0; i < openSet.length; i++) {
-        openSet[i].show(color(0, 255, 0));
+        openSet[i].show(color(255, 255, 0, 200));
     }
 
-    if (!noSolution) {
-        path = [];
-        var temp = current;
-        path.push(temp);
-        while (temp.previous) {
-            path.push(temp.previous);
-            temp = temp.previous;
-        }
+    // Find the path by working backwards
+    path = [];
+    var temp = current;
+    path.push(temp);
+    while (temp.previous) {
+        path.push(temp.previous);
+        temp = temp.previous;
     }
 
+    noFill();
+    stroke(color(0, 0, 255));
+    strokeWeight(w / 2);
+    beginShape();
     for (var i = 0; i < path.length; i++) {
-        path[i].show(color(0, 0, 255));
+        vertex(path[i].x * w + w / 2, path[i].y * h + h / 2);
     }
+    endShape();
+    end.show(color(0, 255, 0));
+    start.show(color(255, 0, 0));
 }
 
-// remove a spot from an array
-removeFromArray = function (arr, elt) {
+// Function to delete element from the array
+function removeFromArray(arr, elt) {
     for (var i = arr.length - 1; i >= 0; i--) {
-        if (arr[i] === elt) {
+        if (arr[i] == elt) {
             arr.splice(i, 1);
         }
     }
-};
+}
 
-// heuristic function for the distance between two spots
+// Function to calculate the heuristic value (distance between two points)
 function heuristic(a, b) {
-    //var d = dist(a.i, a.j, b.i, b.j);
-    var d = abs(a.i - b.i) + abs(a.j - b.j);
-    return d;
+    if (allowDiagonals) {
+        return dist(a.x, a.y, b.x, b.y);
+    } else {
+        return abs(a.x - b.x) + abs(a.y - b.y);
+    }
+}
+
+// Function to free start and end points from walls
+function freeStartAndEnd() {
+    start.wall = false;
+    end.wall = false;
+
+    for (var i = 0; i < 3; i++) {
+        for (var j = 0; j < 3; j++) {
+            grid[i][j].wall = false;
+        }
+    }
+
+    for (var i = cols - 3; i < cols; i++) {
+        for (var j = rows - 3; j < rows; j++) {
+            grid[i][j].wall = false;
+        }
+    }
 }
